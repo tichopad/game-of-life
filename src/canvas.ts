@@ -1,22 +1,22 @@
 import { invoker, curry, pipe, of, ap } from 'ramda';
-import { Position } from './types';
+import type { Position } from './cells';
 
 type CanvasWithContext2D = {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
 };
 
-export function getCanvasWithContext2D(canvasElementSelector: string): CanvasWithContext2D | Error {
+export function getCanvasWithContext2D(canvasElementSelector: string): CanvasWithContext2D {
   const canvas = document.querySelector<HTMLCanvasElement>(canvasElementSelector);
 
   if (canvas === null) {
-    return new Error('Could not find element with ID "canvas"');
+    throw new Error('Could not find element with ID "canvas"');
   }
 
   const context = canvas.getContext('2d');
 
   if (context === null) {
-    return new Error('Could not get canvas 2D context');
+    throw new Error('Could not get canvas 2D context');
   }
 
   return {
@@ -30,7 +30,7 @@ const fillRect = invoker(4, 'fillRect');
 const clearCanvas = (canvas: HTMLCanvasElement) => clearRect(0, 0, canvas.width, canvas.height);
 
 const drawRectangles = curry((positions: ReadonlyArray<Position>, context: CanvasRenderingContext2D) =>
-  positions.forEach(({ x, y }) => fillRect(x, y, 5, 5, context))
+  positions.forEach(([x, y]) => fillRect(x, y, 1, 1, context))
 );
 
 export const draw = curry((canvas: HTMLCanvasElement, rectanglesPositions: ReadonlyArray<Position>) => {

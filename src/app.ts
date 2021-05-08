@@ -1,18 +1,22 @@
-import { drawGrid, getCanvasWithContext2D } from './canvas';
+import { draw, getCanvasWithContext2D } from './canvas';
+import { createRandomCellsInField, getAliveCellsPositionsFromMap } from './cells';
 import { createAnimationLoop } from './loop';
 
 function main() {
-  const canvasWithContext = getCanvasWithContext2D('#canvas');
+  const { canvas, context } = getCanvasWithContext2D('#canvas');
 
-  if (canvasWithContext instanceof Error) {
-    throw canvasWithContext;
-  }
+  // playground
 
-  const { canvas, context } = canvasWithContext;
-  const drawGridToCanvas = drawGrid(canvas, { width: 10, height: 10 });
+  const cells = createRandomCellsInField({ height: 10, width: 20 });
+  console.table(cells);
+
+  const aliveCellsPositions = getAliveCellsPositionsFromMap(cells);
+  const drawRectangles = draw(canvas, aliveCellsPositions);
+
+  // /playground
 
   const runAnimation = createAnimationLoop(() => {
-    drawGridToCanvas(context);
+    drawRectangles(context);
   });
 
   runAnimation();
