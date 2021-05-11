@@ -1,4 +1,11 @@
 /** @type {import("snowpack").SnowpackUserConfig } */
 module.exports = {
-  plugins: ["@snowpack/plugin-typescript"],
+  devOptions: {
+    open: 'firefox',
+  },
+  plugins: ['@snowpack/plugin-typescript'],
+  packageOptions: {
+    source: 'remote',
+    types: true,
+  },
 };

@@ -1,7 +1,7 @@
-import { pipe, range, xprod, map, filter } from 'ramda';
+import { pipe, range, xprod, map, filter, isNil } from 'ramda';
 import { isNotNumber } from 'ramda-adjunct';
 
-type CellState = 'alive' | 'dead';
+export type CellState = 'alive' | 'dead';
 export type Cell = { state: CellState };
 export type Position = [x: number, y: number];
 export type SerializedPosition = string;
@@ -27,6 +27,10 @@ export const parsePosition = (serializedPosition: SerializedPosition): Position 
     throw new Error(`Unable to parse position "${serializedPosition}"`);
   }
 
+  if (isNil(splitPosition?.[0]) || isNil(splitPosition?.[1])) {
+    throw new Error(`Invalid parsed position "x: ${splitPosition?.[0]}, y: ${splitPosition?.[1]}"`);
+  }
+
   const x = parseInt(splitPosition[0], 10);
   const y = parseInt(splitPosition[1], 10);
 
@@ -41,7 +45,6 @@ export const parsePosition = (serializedPosition: SerializedPosition): Position 
 
 const createCell = (state: CellState) => ({ state });
 const createRandomCell = (): Cell => createCell(Math.random() > 0.98 ? 'alive' : 'dead');
-
 const isCellAlive = (cell: Cell) => cell.state === 'alive';
 
 // Cells and positions

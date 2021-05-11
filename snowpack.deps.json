@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "ramda": "^0.27.1",
+    "ramda-adjunct": "^2.32.0"
+  },
+  "lock": {
+    "ramda#^0.27.1": "ramda@v0.27.1-3ePaNsppsnXYRcaNcaWn",
+    "ramda-adjunct#^2.32.0": "ramda-adjunct@v2.32.0-kVZkaL59Cz4hZCTfMAwj"
+  }
+}
