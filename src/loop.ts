@@ -1,18 +1,18 @@
-type AnimationCallback = (deltaTime: number) => void;
+type RenderCallback = (deltaTime: number) => void;
 
-export function createAnimationLoop(animationCallback: AnimationCallback) {
+export function createRenderLoop(renderCallback: RenderCallback) {
   let lastTime = performance.now();
 
-  const animationLoop = () => {
+  const renderLoop = () => {
     const now = performance.now();
     const deltaTime = now - lastTime;
     lastTime = now;
 
-    animationCallback(deltaTime);
-    requestAnimationFrame(animationLoop);
+    renderCallback(deltaTime);
+    requestAnimationFrame(renderLoop);
   };
 
-  return animationLoop;
+  return renderLoop;
 }
 
 type LogicCallback = (deltaTime: number) => void;

@@ -40,7 +40,7 @@ export const parsePosition = (serializedPosition: SerializedPosition): Position 
 // Cells and cell creation
 
 const createCell = (state: CellState) => ({ state });
-const createRandomCell = (): Cell => createCell(Math.random() > 0.9 ? 'alive' : 'dead');
+const createRandomCell = (): Cell => createCell(Math.random() > 0.98 ? 'alive' : 'dead');
 
 const isCellAlive = (cell: Cell) => cell.state === 'alive';
 

@@ -1,11 +1,18 @@
-import { invoker, curry, pipe, of, ap } from 'ramda';
-import type { Position } from './cells';
+import { invoker, curry } from 'ramda';
+import type { FieldAttributes, Position } from './cells';
+
+// Canvas methods invokers
+const clearRect = invoker(4, 'clearRect');
+const fillRect = invoker(4, 'fillRect');
 
 type CanvasWithContext2D = {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
 };
 
+/**
+ * Returns canvas element and its context
+ */
 export function getCanvasWithContext2D(canvasElementSelector: string): CanvasWithContext2D {
   const canvas = document.querySelector<HTMLCanvasElement>(canvasElementSelector);
 
@@ -25,53 +32,72 @@ export function getCanvasWithContext2D(canvasElementSelector: string): CanvasWit
   };
 }
 
-const clearRect = invoker(4, 'clearRect');
-const fillRect = invoker(4, 'fillRect');
-const clearCanvas = (canvas: HTMLCanvasElement) => clearRect(0, 0, canvas.width, canvas.height);
-
-const drawRectangles = curry((positions: ReadonlyArray<Position>, context: CanvasRenderingContext2D) =>
-  positions.forEach(([x, y]) => fillRect(x, y, 1, 1, context))
-);
-
-export const draw = curry((canvas: HTMLCanvasElement, rectanglesPositions: ReadonlyArray<Position>) => {
-  // prettier-ignore
-  const contextOperations = [
-    clearCanvas(canvas),
-    drawRectangles(rectanglesPositions)
-  ];
-
-  return pipe<CanvasRenderingContext2D, Array<CanvasRenderingContext2D>, void>(
-    of,
-    ap<CanvasRenderingContext2D, void>(contextOperations)
-  );
-});
-
-type Dimensions2D = {
-  width: number;
-  height: number;
+type CanvasToFieldRatio = {
+  horizontal: number;
+  vertical: number;
 };
 
+const getCanvasToFieldRatio = (canvas: HTMLCanvasElement, field: FieldAttributes): CanvasToFieldRatio => ({
+  horizontal: canvas.width / field.width,
+  vertical: canvas.height / field.height,
+});
+
+export const clear = curry((canvas: HTMLCanvasElement, context: CanvasRenderingContext2D) =>
+  clearRect(0, 0, canvas.width, canvas.height, context)
+);
+
+/**
+ * Draws cells given canvas, cells field and their positions
+ */
+export const drawCells = curry(
+  (
+    canvas: HTMLCanvasElement,
+    field: FieldAttributes,
+    positions: ReadonlyArray<Position>,
+    context: CanvasRenderingContext2D
+  ) => {
+    const canvasToFieldRatio = getCanvasToFieldRatio(canvas, field);
+
+    positions.forEach(([x, y]) =>
+      fillRect(
+        x * canvasToFieldRatio.horizontal,
+        y * canvasToFieldRatio.vertical,
+        canvasToFieldRatio.horizontal,
+        canvasToFieldRatio.vertical,
+        context
+      )
+    );
+  }
+);
+
+/**
+ * Draws grid given canvas and cells field
+ */
 export const drawGrid = curry(
-  (canvas: HTMLCanvasElement, cellSize: Dimensions2D, context: CanvasRenderingContext2D) => {
+  (canvas: HTMLCanvasElement, field: FieldAttributes, context: CanvasRenderingContext2D) => {
     context.lineWidth = 1;
     context.strokeStyle = 'lightgray';
 
+    const canvasToFieldRatio = getCanvasToFieldRatio(canvas, field);
+    const cellWidth = canvasToFieldRatio.horizontal;
+    const cellHeight = canvasToFieldRatio.vertical;
+
     context.beginPath();
-    let x = cellSize.width;
+    let x = cellWidth;
     while (x < canvas.width) {
       context.moveTo(x, 0);
       context.lineTo(x, canvas.height);
-      x += cellSize.width;
+      x += cellWidth;
     }
     context.stroke();
     context.closePath();
 
     context.beginPath();
-    let y = cellSize.height;
+    let y = cellHeight;
     while (y < canvas.height) {
       context.moveTo(0, y);
       context.lineTo(canvas.width, y);
-      y += cellSize.height;
+      y += cellHeight;
     }
     context.stroke();
     context.closePath();
