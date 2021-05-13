@@ -1,92 +1,49 @@
-import { curry, filter, length, map, pipe } from 'ramda';
-import { compact } from 'ramda-adjunct';
-import { clear, drawCells, drawGrid, getCanvasWithContext2D } from './canvas';
+import { pipe } from 'ramda';
+import { createWorldDrawer, getCanvasWithContext2D } from './canvas';
 import {
   Cell,
-  CellState,
   createCell,
   createRandomCellsInField,
   getAliveCellsPositionsFromMap,
-  isCellAlive,
-  parsePosition,
-  Position,
-  SerializedPosition,
-  serializePosition,
+  getNextCellState,
+  getNumberOfAliveNeighbors,
 } from './cells';
-import { createLogicLoop } from './loop';
+import { Position, SerializedPosition } from './position';
 
-function getMooreNeighborhood([x, y]: Position): Array<Position> {
-  return [
-    [x, y - 1],
-    [x, y + 1],
-    [x - 1, y],
-    [x + 1, y],
-    [x + 1, y + 1],
-    [x + 1, y - 1],
-    [x - 1, y + 1],
-    [x - 1, y - 1],
-  ];
-}
+type Renderer = (cellsPositions: ReadonlyArray<Position>) => void;
 
-const getNextCellState = curry((cell: Cell, numberOfAliveNeighbors: number): CellState => {
-  if (isCellAlive(cell)) {
-    if (numberOfAliveNeighbors < 2) return 'dead';
-    if (numberOfAliveNeighbors > 3) return 'dead';
-    if (numberOfAliveNeighbors === 2 || numberOfAliveNeighbors === 3) return 'alive';
-  }
+function transitionAndDrawWorldState(cells: Map<SerializedPosition, Cell>, render: Renderer) {
+  const aliveCellsPositions = getAliveCellsPositionsFromMap(cells);
 
-  if (numberOfAliveNeighbors === 3) {
-    return 'alive';
-  }
+  render(aliveCellsPositions);
 
-  return cell.state;
-});
-
-const getNumberOfAliveNeighbors = (cells: Map<SerializedPosition, Cell>) => {
-  return pipe(
-    parsePosition,
-    getMooreNeighborhood,
-    map(pipe(serializePosition, key => cells.get(key))),
-    compact,
-    filter(isCellAlive),
-    length
+  const nextCells = new Map(
+    [...cells].map(([serializedPosition, cell]) => [
+      serializedPosition,
+      pipe(getNumberOfAliveNeighbors(cells), getNextCellState(cell.state), createCell)(serializedPosition),
+    ])
   );
-};
+
+  setTimeout(() => transitionAndDrawWorldState(nextCells, render), 1000 / 3);
+}
 
 function main() {
   const { canvas, context } = getCanvasWithContext2D('#canvas');
 
-  // Setup playing field
+  // Declare playing field
   const field = {
     height: 30,
     width: 30,
   };
 
-  // Drawing methods
-  const clearCanvas = clear(canvas);
-  const drawCellsToCanvas = drawCells(canvas, field);
-  const drawGridToCanvas = drawGrid(canvas, field);
+  // Setup world renderer
+  const drawWorld = createWorldDrawer(canvas, context, field);
 
   // Create cells
-  let cells = createRandomCellsInField(field);
-  let aliveCellsPositions = getAliveCellsPositionsFromMap(cells);
+  const cells = createRandomCellsInField(field);
 
-  const runLogic = createLogicLoop(() => {
-    clearCanvas(context);
-    drawCellsToCanvas(aliveCellsPositions, context);
-    drawGridToCanvas(context);
-
-    cells = new Map(
-      [...cells].map(([serializedPosition, cell]) => [
-        serializedPosition,
-        pipe(getNumberOfAliveNeighbors(cells), getNextCellState(cell), createCell)(serializedPosition),
-      ])
-    );
-
-    aliveCellsPositions = getAliveCellsPositionsFromMap(cells);
-  }, 2);
-
-  runLogic();
+  // Music!
+  transitionAndDrawWorldState(cells, drawWorld);
 }
 
 document.addEventListener('DOMContentLoaded', main);

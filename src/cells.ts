@@ -1,51 +1,22 @@
-import { pipe, range, xprod, map, filter, isNil } from 'ramda';
-import { isNotNumber } from 'ramda-adjunct';
+import { pipe, range, xprod, map, filter, curry, length } from 'ramda';
+import { compact } from 'ramda-adjunct';
+import { getMooreNeighborhood, parsePosition, Position, SerializedPosition, serializePosition } from './position';
 
 export type CellState = 'alive' | 'dead';
 export type Cell = { state: CellState };
-export type Position = [x: number, y: number];
-export type SerializedPosition = string;
 export type FieldAttributes = {
   height: number;
   width: number;
 };
 
-// Serialize / de-serialize positions
-
-/**
- * Serialize position into string in a shape of "x-y"
- */
-export const serializePosition = ([x, y]: Position): SerializedPosition => `${x}-${y}`;
-
-/**
- * Parse serialized position into a tuple
- */
-export const parsePosition = (serializedPosition: SerializedPosition): Position => {
-  const splitPosition = serializedPosition.split('-');
-
-  if (splitPosition.length !== 2) {
-    throw new Error(`Unable to parse position "${serializedPosition}"`);
-  }
-
-  if (isNil(splitPosition?.[0]) || isNil(splitPosition?.[1])) {
-    throw new Error(`Invalid parsed position "x: ${splitPosition?.[0]}, y: ${splitPosition?.[1]}"`);
-  }
-
-  const x = parseInt(splitPosition[0], 10);
-  const y = parseInt(splitPosition[1], 10);
-
-  if (isNotNumber(x) || isNotNumber(y)) {
-    throw new Error(`Parsed position "x: ${x}, y: ${y}" is not made of numbers`);
-  }
-
-  return [x, y];
-};
-
-// Cells and cell creation
+// Cells creation
 
 export const createCell = (state: CellState): Cell => ({ state });
-const createRandomCell = (): Cell => createCell(Math.random() > 0.5 ? 'alive' : 'dead');
+const createRandomCell = (): Cell => createCell(Math.random() > 0.9 ? 'alive' : 'dead');
 
+// Cells attributes
+
+export const isAlive = (state: CellState) => state === 'alive';
 export const isCellAlive = (cell: Cell) => cell.state === 'alive';
 
 // Cells and positions
@@ -92,3 +63,31 @@ export const getAliveCellsPositionsFromMap = pipe<
   filter<[SerializedPosition, Cell], 'array'>(([_, cell]) => isCellAlive(cell)),
   map(([serializedPosition]) => parsePosition(serializedPosition))
 );
+
+type AliveNeighborsCounter = (position: SerializedPosition) => number;
+
+export const getNumberOfAliveNeighbors = (cells: Map<SerializedPosition, Cell>): AliveNeighborsCounter => {
+  return pipe(
+    parsePosition,
+    getMooreNeighborhood,
+    map(serializePosition),
+    map(key => cells.get(key)),
+    compact,
+    filter(isCellAlive),
+    length
+  );
+};
+
+export const getNextCellState = curry((currentState: CellState, numberOfAliveNeighbors: number): CellState => {
+  if (isAlive(currentState)) {
+    if (numberOfAliveNeighbors < 2) return 'dead';
+    if (numberOfAliveNeighbors > 3) return 'dead';
+    if (numberOfAliveNeighbors === 2 || numberOfAliveNeighbors === 3) return 'alive';
+  }
+
+  if (numberOfAliveNeighbors === 3) {
+    return 'alive';
+  }
+
+  return currentState;
+});
