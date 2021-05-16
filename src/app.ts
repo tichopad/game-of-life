@@ -1,5 +1,5 @@
 import { pipe } from 'ramda';
-import { createWorldDrawer, getCanvasWithContext2D } from './canvas';
+import { getCanvasWithContext2D } from './canvas';
 import {
   Cell,
   createCell,
@@ -8,6 +8,7 @@ import {
   getNextCellState,
   getNumberOfAliveNeighbors,
 } from './cells';
+import { createWorldDrawer } from './drawing';
 import { Position, SerializedPosition } from './position';
 
 type Renderer = (cellsPositions: ReadonlyArray<Position>) => void;
@@ -24,7 +25,7 @@ function transitionAndDrawWorldState(cells: Map<SerializedPosition, Cell>, rende
     ])
   );
 
-  setTimeout(() => transitionAndDrawWorldState(nextCells, render), 1000 / 3);
+  setTimeout(() => transitionAndDrawWorldState(nextCells, render), 250);
 }
 
 function main() {
