@@ -1,7 +1,10 @@
 {
   "scripts": {
     "build": "snowpack build",
-    "start": "snowpack dev"
+    "start": "snowpack dev",
+    "format": "prettier \"src/**/*.ts\" --write",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "check": "yarn run lint && yarn run format"
   },
   "devDependencies": {
     "@snowpack/plugin-typescript": "^1.2.1",
@@ -10,6 +13,7 @@
     "eslint": "^7.25.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-config-standard": "^16.0.2",
+    "eslint-import-resolver-node": "^0.3.4",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.3.1",

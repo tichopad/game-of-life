@@ -1,4 +1,4 @@
-import { pipe, range, xprod, map, filter, curry, length } from 'ramda';
+import { pipe, range, xprod, map, filter, length } from 'ramda';
 import { compact } from 'ramda-adjunct';
 import { getMooreNeighborhood, parsePosition, Position, SerializedPosition, serializePosition } from './position';
 
@@ -12,7 +12,7 @@ export type FieldAttributes = {
 // Cells creation
 
 export const createCell = (state: CellState): Cell => ({ state });
-const createRandomCell = (): Cell => createCell(Math.random() > 0.9 ? 'alive' : 'dead');
+const createRandomCell = (): Cell => createCell(Math.random() > 0.8 ? 'alive' : 'dead');
 
 // Cells attributes
 
@@ -77,17 +77,3 @@ export const getNumberOfAliveNeighbors = (cells: Map<SerializedPosition, Cell>):
     length
   );
 };
-
-export const getNextCellState = curry((currentState: CellState, numberOfAliveNeighbors: number): CellState => {
-  if (isAlive(currentState)) {
-    if (numberOfAliveNeighbors < 2) return 'dead';
-    if (numberOfAliveNeighbors > 3) return 'dead';
-    if (numberOfAliveNeighbors === 2 || numberOfAliveNeighbors === 3) return 'alive';
-  }
-
-  if (numberOfAliveNeighbors === 3) {
-    return 'alive';
-  }
-
-  return currentState;
-});

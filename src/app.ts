@@ -5,11 +5,11 @@ import {
   createCell,
   createRandomCellsInField,
   getAliveCellsPositionsFromMap,
-  getNextCellState,
   getNumberOfAliveNeighbors,
 } from './cells';
 import { createWorldDrawer } from './drawing';
 import { Position, SerializedPosition } from './position';
+import { amoeba } from './rules';
 
 type Renderer = (cellsPositions: ReadonlyArray<Position>) => void;
 
@@ -21,7 +21,7 @@ function transitionAndDrawWorldState(cells: Map<SerializedPosition, Cell>, rende
   const nextCells = new Map(
     [...cells].map(([serializedPosition, cell]) => [
       serializedPosition,
-      pipe(getNumberOfAliveNeighbors(cells), getNextCellState(cell.state), createCell)(serializedPosition),
+      pipe(getNumberOfAliveNeighbors(cells), amoeba(cell.state), createCell)(serializedPosition),
     ])
   );
 
