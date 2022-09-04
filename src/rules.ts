@@ -53,3 +53,30 @@ export const amoeba: RulesStateEvaluator =
 
     return currentState;
   };
+
+/**
+ * Fredkin's replacer
+ * S1357/B1357
+ */
+export const replacer: RulesStateEvaluator = (currentState: CellState) => (numberOfAliveNeighbors: number) => {
+  if (isAlive(currentState)) {
+    if ([1, 3, 5, 7].includes(numberOfAliveNeighbors)) return 'alive';
+    else return 'dead';
+  }
+
+  if ([1, 3, 5, 7].includes(numberOfAliveNeighbors)) return 'alive';
+
+  return currentState;
+};
+
+/**
+ * Napkin shapes
+ * /B234
+ */
+export const napkins: RulesStateEvaluator = (currentState: CellState) => (numberOfAliveNeighbors: number) => {
+  if (isAlive(currentState) === false) {
+    if ([2, 3, 4].includes(numberOfAliveNeighbors)) return 'alive';
+  }
+
+  return currentState;
+};
